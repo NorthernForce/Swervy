@@ -33,7 +33,7 @@ std::vector<double> OI::GetAdjustedDriveControls() {
     std::vector<double> driveControls = this->GetDriveControls();
     for (uint8_t i=0; i < 3; i++) {
         double *direction_value = &driveControls[i];
-        if (*direction_value < 0.15 || *direction_value > 0.15)
+        if (*direction_value > -0.25 && *direction_value < 0.25)
             *direction_value = 0;
     }
     return driveControls;
