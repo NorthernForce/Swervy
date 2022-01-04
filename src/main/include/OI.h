@@ -5,14 +5,15 @@
 #include <frc2/command/button/Button.h>
 #include <frc2/command/button/POVButton.h>
 
-#include <tuple>
+#include <vector>
 
 class OI {
  public:
     OI();
     void InitControllers();
     void MapControllerButtons();
-    std::tuple<double, double, double> GetDriveControls();
+    std::vector<double> GetDriveControls();
+    std::vector<double> GetAdjustedDriveControls();
     void SetControllerRumble(frc::XboxController *controller, double value=0, bool lightly=false);
 
     static std::shared_ptr<frc::XboxController> driverController;

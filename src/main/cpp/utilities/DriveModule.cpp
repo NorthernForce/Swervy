@@ -3,6 +3,32 @@
 DriveModule::DriveModule(uint8_t driveTalonID, uint8_t turnTalonID, double tP, double tI, double tD, int tIZone) {
     driveTalon = std::make_shared<WPI_TalonFX>(driveTalonID);
     turnTalon = std::make_shared<WPI_TalonFX>(turnTalonID);
+
+    ConfigureTalon(driveTalon);
+    ConfigureTalon(turnTalon);
+}
+
+void DriveModule::ConfigureTalon(std::shared_ptr<WPI_TalonFX> talon) {
+    talon->ConfigFactoryDefault();
+    talon->SetNeutralMode(NeutralMode::Coast);
+    
+    /* Config neutral deadband to be the smallest possible */
+    talon->ConfigNeutralDeadband(0.001);
+
+    talon->ConfigSelectedFeedbackSensor(FeedbackDevice::IntegratedSensor, pidLoopIdx, timeoutMs);
+                                        
+    talon->ConfigNominalOutputForward(0, timeoutMs);
+    talon->ConfigNominalOutputReverse(0, timeoutMs);
+    talon->ConfigPeakOutputForward(1, timeoutMs);
+    talon->ConfigPeakOutputReverse(-1, timeoutMs);
+
+    talon->Config_kF(pidLoopIdx, ff, timeoutMs);
+    talon->Config_kP(pidLoopIdx, p, timeoutMs);
+    talon->Config_kI(pidLoopIdx, i, timeoutMs);
+    talon->Config_kD(pidLoopIdx, d, timeoutMs);
+
+    talon->ConfigOpenloopRamp(5);
+    talon->SetInverted(true);
 }
 
 void DriveModule::SetDriveSpeed(double speed) {

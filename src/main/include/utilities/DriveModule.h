@@ -23,4 +23,14 @@ class DriveModule {
     std::shared_ptr<WPI_TalonFX> driveTalon;
     std::shared_ptr<WPI_TalonFX> turnTalon;
     const uint16_t encoder_cpr = 4096;
+
+    double p = 0.1;
+    double i = 0.001;
+    double d = 5; 
+    double ff = (1023/20660);
+    const int maxI = 300;
+    const double maxOutput = 1;
+    const double minOutput = -1;
+    uint8_t timeoutMs = 30;
+    uint8_t pidLoopIdx = 0; //default
 };

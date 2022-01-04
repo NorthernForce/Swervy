@@ -35,10 +35,15 @@ class Drivetrain : public frc2::SubsystemBase {
     std::shared_ptr<DriveModule> driveModuleRL;
     std::shared_ptr<DriveModule> driveModuleRR;
 
-    double p = 4.2;
-    double i = 0.01;
+    // double p = 4.2;
+    // double i = 0.01;
+    // double d = 0;
+    // double iZ = 200;
+
+    double p = 1;
+    double i = 0;
     double d = 0;
-    double iZ = 200;
+    double iZ = 0;
 
     const double l = 21;
     const double w = 21;

@@ -7,10 +7,10 @@
 #include <cmath>
 
 Drivetrain::Drivetrain() {
-    driveModuleFL = std::make_shared<DriveModule>(Constants::MotorIDs::driveFL, Constants::MotorIDs::driveFL, p, i, d, iZ);     
-    driveModuleFR = std::make_shared<DriveModule>(Constants::MotorIDs::driveFR, Constants::MotorIDs::driveFR, p, i, d, iZ); 
-    driveModuleRL = std::make_shared<DriveModule>(Constants::MotorIDs::driveRL, Constants::MotorIDs::driveRL, p, i, d, iZ); 
-    driveModuleRR = std::make_shared<DriveModule>(Constants::MotorIDs::driveRR, Constants::MotorIDs::driveRR, p, i, d, iZ); 
+    driveModuleFL = std::make_shared<DriveModule>(Constants::MotorIDs::driveFL, Constants::MotorIDs::turnFL, p, i, d, iZ);     
+    driveModuleFR = std::make_shared<DriveModule>(Constants::MotorIDs::driveFR, Constants::MotorIDs::turnFR, p, i, d, iZ); 
+    driveModuleRL = std::make_shared<DriveModule>(Constants::MotorIDs::driveRL, Constants::MotorIDs::turnRL, p, i, d, iZ); 
+    driveModuleRR = std::make_shared<DriveModule>(Constants::MotorIDs::driveRR, Constants::MotorIDs::turnRR, p, i, d, iZ); 
 }
 
 void Drivetrain::Periodic() {
@@ -21,14 +21,15 @@ void Drivetrain::SetDriveSpeed(double fl, double fr, double rl, double rr) {
     driveModuleFL->SetDriveSpeed(fl);
     driveModuleFR->SetDriveSpeed(fr);
     driveModuleRL->SetDriveSpeed(rl);
-    driveModuleRR->SetDriveSpeed(rl);
+    driveModuleRR->SetDriveSpeed(rr);
+    printf("fl: %f, fr: %f, rl: %f, rr, %f\n", fl, fr, rl, rr);
 }
 
 void Drivetrain::SetTurnSpeed(double fl, double fr, double rl, double rr) {
     driveModuleFL->SetTurnSpeed(fl);
     driveModuleFR->SetTurnSpeed(fr);
     driveModuleRL->SetTurnSpeed(rl);
-    driveModuleRR->SetTurnSpeed(rl);
+    driveModuleRR->SetTurnSpeed(rr);
 }
 
 void Drivetrain::SetLocation(double fl, double fr, double rl, double rr) {
@@ -69,6 +70,9 @@ void Drivetrain::SwerveDrive(double fwd, double str, double rot) {
     double b = str + (rot * (l / r));
     double c = fwd - (rot * (w / r));
     double d = fwd + (rot * (w / r));
+
+    // printf("a: %f, b: %f, c: %f, d: %f\n", a, b, c, d);
+    printf("str: %f, fwd: %f, rot: %f\n", str, fwd, rot);
 
     double ws1 = sqrt((b * b) + (c * c));
     double ws2 = sqrt((b * b) + (d * d));

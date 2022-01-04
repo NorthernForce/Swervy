@@ -4,6 +4,7 @@
 #include "OI.h"
 #include "Constants.h"
 #include "commands/DriveWithJoystick.h"
+#include "commands/TankDriveForward.h"
 
 std::shared_ptr<frc::XboxController> OI::driverController;
 
@@ -16,13 +17,26 @@ void OI::InitControllers() {
     driverController = std::make_shared<frc::XboxController>(Constants::driverControllerID);
 }
 
-void OI::MapControllerButtons() {}
+void OI::MapControllerButtons() {
+    SimpleButton(driverController, Xbox::A_button).WhileHeld(TankDriveForward());
+}
 
-std::tuple<double, double, double> OI::GetDriveControls() {
+std::vector<double> OI::GetDriveControls() {
     speed = driverController->GetY(frc::XboxController::JoystickHand::kLeftHand);
     yaw = driverController->GetX(frc::XboxController::JoystickHand::kLeftHand);
     strafe = driverController->GetX(frc::XboxController::JoystickHand::kRightHand);
-    return std::make_tuple(speed, yaw, strafe);
+    return {speed, yaw, strafe};
+}
+
+std::vector<double> OI::GetAdjustedDriveControls() {
+    // Scale from -1-1 to user-specified interval, default includes deadband
+    std::vector<double> driveControls = this->GetDriveControls();
+    for (uint8_t i=0; i < 3; i++) {
+        double *direction_value = &driveControls[i];
+        if (*direction_value < 0.15 || *direction_value > 0.15)
+            *direction_value = 0;
+    }
+    return driveControls;
 }
 
 void OI::SetControllerRumble(frc::XboxController *controller, double value, bool lightly) {
