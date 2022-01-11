@@ -25,8 +25,8 @@ class DriveModule {
     const uint16_t encoder_cpr = 2048;
 
     double p = 0.1;
-    double i = 0.001;
-    double d = 5; 
+    double i = 0;
+    double d = 0; 
     double ff = (1023/20660);
     const uint16_t maxI = 300;
     const double maxOutput = 1;
