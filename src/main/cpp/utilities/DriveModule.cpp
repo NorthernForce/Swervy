@@ -1,6 +1,6 @@
 #include "utilities/DriveModule.h"
 
-DriveModule::DriveModule(uint8_t driveTalonID, uint8_t turnTalonID, double tP, double tI, double tD, int tIZone) {
+DriveModule::DriveModule(uint8_t driveTalonID, uint8_t turnTalonID, uint8_t canCoderID, double tP, double tI, double tD, int tIZone) {
     driveTalon = std::make_shared<WPI_TalonFX>(driveTalonID);
     turnTalon = std::make_shared<WPI_TalonFX>(turnTalonID);
 
@@ -8,9 +8,9 @@ DriveModule::DriveModule(uint8_t driveTalonID, uint8_t turnTalonID, double tP, d
     ConfigureTalon(turnTalon);
 }
 
-void DriveModule::ConfigureTalon(std::shared_ptr<WPI_TalonFX> talon) {
+void DriveModule::ConfigureTalon(std::shared_ptr<WPI_TalonFX> talon, double tP, double tI, double tD) {
     talon->ConfigFactoryDefault();
-    talon->SetNeutralMode(NeutralMode::Coast);
+    talon->SetNeutralMode(NeutralMode::Brake);
     
     /* Config neutral deadband to be the smallest possible */
     talon->ConfigNeutralDeadband(0.001);
@@ -23,12 +23,12 @@ void DriveModule::ConfigureTalon(std::shared_ptr<WPI_TalonFX> talon) {
     talon->ConfigPeakOutputReverse(-1, timeoutMs);
 
     talon->Config_kF(pidLoopIdx, ff, timeoutMs);
-    talon->Config_kP(pidLoopIdx, p, timeoutMs);
-    talon->Config_kI(pidLoopIdx, i, timeoutMs);
-    talon->Config_kD(pidLoopIdx, d, timeoutMs);
+    talon->Config_kP(pidLoopIdx, tP, timeoutMs);
+    talon->Config_kI(pidLoopIdx, tI, timeoutMs);
+    talon->Config_kD(pidLoopIdx, tD, timeoutMs);
 
-    talon->ConfigOpenloopRamp(5);
-    talon->SetInverted(true);
+    talon->ConfigOpenloopRamp(2);
+    talon->SetInverted(false);
 }
 
 void DriveModule::SetDriveSpeed(double speed) {
@@ -47,6 +47,7 @@ void DriveModule::SetTurnLocation(double loc) {
         else if ((base + (loc * encoder_cpr)) - GetTurnEncPosition() > encoder_cpr/2)
             base -= encoder_cpr;
         double pos = ((loc * encoder_cpr) + (base));
+        //printf("pos < 0: %f", pos);
         turnTalon->Set(TalonFXControlMode::Position, pos);
     } else {
         if ((base - ((1-loc) * encoder_cpr)) - GetTurnEncPosition() < -encoder_cpr/2)
@@ -54,7 +55,8 @@ void DriveModule::SetTurnLocation(double loc) {
         else if ((base -((1-loc) * encoder_cpr)) - GetTurnEncPosition() > encoder_cpr/2)
             base -= encoder_cpr;
         double pos = (base - (((1-loc) * encoder_cpr)));
-        turnTalon->Set(TalonFXControlMode::Position, pos);	
+        turnTalon->Set(TalonFXControlMode::Position, pos);
+        //printf("pos > 0: %f", pos);
     }
 }
 
@@ -63,7 +65,7 @@ double DriveModule::GetDriveEncPosition() {
 }
 
 double DriveModule::GetTurnEncPosition() {
-    return turnTalon->GetSensorCollection().GetIntegratedSensorPosition();
+    return turnTalon->GetSensorCollection().GetIntegratedSensorPosition() / 34.55;
 }
 
 void DriveModule::SetIdleMode(IdleMode mode) {

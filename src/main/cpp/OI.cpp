@@ -21,16 +21,16 @@ void OI::MapControllerButtons() {
     SimpleButton(driverController, Xbox::A_button).WhileHeld(TankDriveForward());
 }
 
-std::vector<double> OI::GetDriveControls() {
-    speed = driverController->GetY(frc::XboxController::JoystickHand::kLeftHand);
+std::vector<double> OI::GetRawDriveControls() {
+    speed = -1 * driverController->GetY(frc::XboxController::JoystickHand::kLeftHand);
     yaw = driverController->GetX(frc::XboxController::JoystickHand::kLeftHand);
     strafe = driverController->GetX(frc::XboxController::JoystickHand::kRightHand);
     return {speed, yaw, strafe};
 }
 
-std::vector<double> OI::GetAdjustedDriveControls() {
+std::vector<double> OI::GetDriveControls() {
     // Scale from -1-1 to user-specified interval, default includes deadband
-    std::vector<double> driveControls = this->GetDriveControls();
+    std::vector<double> driveControls = this->GetRawDriveControls();
     for (uint8_t i=0; i < 3; i++) {
         double *direction_value = &driveControls[i];
         if (*direction_value > -0.25 && *direction_value < 0.25)

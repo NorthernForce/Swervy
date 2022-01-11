@@ -13,7 +13,6 @@ class OI {
     void InitControllers();
     void MapControllerButtons();
     std::vector<double> GetDriveControls();
-    std::vector<double> GetAdjustedDriveControls();
     void SetControllerRumble(frc::XboxController *controller, double value=0, bool lightly=false);
 
     static std::shared_ptr<frc::XboxController> driverController;
@@ -55,6 +54,7 @@ class OI {
 
  private:
     double CheckAndLimitValue(double value, double upperLimit=1, double lowerLimit=0);
+    std::vector<double> GetRawDriveControls();
     double speed, yaw, strafe;
     frc2::Button SimpleButton(std::shared_ptr<frc::GenericHID> controller, uint8_t btn);
     frc2::Button SimpleAxis(std::shared_ptr<frc::GenericHID> controller, uint8_t axis, double threshold=0.5);

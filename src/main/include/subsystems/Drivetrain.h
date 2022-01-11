@@ -45,7 +45,7 @@ class Drivetrain : public frc2::SubsystemBase {
     double d = 0;
     double iZ = 0;
 
-    const double l = 21;
-    const double w = 21;
+    const double l = 29;
+    const double w = 29;
     const double r = sqrt((l * l) + (w * w));
 };
