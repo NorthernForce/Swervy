@@ -3,6 +3,7 @@
 DriveModule::DriveModule(uint8_t driveTalonID, uint8_t turnTalonID, uint8_t canCoderID, double tP, double tI, double tD, int tIZone) {
     driveTalon = std::make_shared<WPI_TalonFX>(driveTalonID);
     turnTalon = std::make_shared<WPI_TalonFX>(turnTalonID);
+    canCoder = std::make_shared<CANCoder>(canCoderID);
 
     ConfigureTalon(driveTalon);
     ConfigureTalon(turnTalon);

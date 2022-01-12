@@ -22,6 +22,7 @@ class DriveModule {
  private:
     std::shared_ptr<WPI_TalonFX> driveTalon;
     std::shared_ptr<WPI_TalonFX> turnTalon;
+    std::shared_ptr<CANCoder> canCoder;
     const uint16_t encoder_cpr = 2048;
 
     double p = 0.5;
