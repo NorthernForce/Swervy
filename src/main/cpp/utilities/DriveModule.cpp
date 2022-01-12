@@ -22,7 +22,7 @@ void DriveModule::ConfigureTalon(std::shared_ptr<WPI_TalonFX> talon, double tP, 
     talon->ConfigPeakOutputForward(1, timeoutMs);
     talon->ConfigPeakOutputReverse(-1, timeoutMs);
 
-    talon->Config_kF(pidLoopIdx, ff, timeoutMs);
+    // talon->Config_kF(pidLoopIdx, ff, timeoutMs);
     talon->Config_kP(pidLoopIdx, tP, timeoutMs);
     talon->Config_kI(pidLoopIdx, tI, timeoutMs);
     talon->Config_kD(pidLoopIdx, tD, timeoutMs);

@@ -24,7 +24,7 @@ class DriveModule {
     std::shared_ptr<WPI_TalonFX> turnTalon;
     const uint16_t encoder_cpr = 2048;
 
-    double p = 0.1;
+    double p = 0.5;
     double i = 0;
     double d = 0; 
     double ff = (1023/20660);
