@@ -25,9 +25,9 @@
 DriveModule::DriveModule(uint8_t driveTalonID, uint8_t turnTalonID, uint8_t canCoderID, double turnOffset) 
  : turnOffset(turnOffset) 
 {
-  driveTalon = std::make_shared<WPI_TalonFX>(driveTalonID);
-  turnTalon = std::make_shared<WPI_TalonFX>(turnTalonID);
-  canCoder = std::make_shared<CANCoder>(canCoderID);
+  driveTalon.reset(new WPI_TalonFX(driveTalonID));
+  turnTalon.reset(new WPI_TalonFX(turnTalonID));
+  canCoder.reset(new CANCoder(canCoderID));
 
   ConfigureDriveTalon();
   ConfigureTurnTalon();
@@ -41,9 +41,8 @@ void DriveModule::ConfigureDriveTalon() {
   driveTalon->ConfigSelectedFeedbackSensor(FeedbackDevice::IntegratedSensor);
   driveTalon->ConfigSelectedFeedbackCoefficient(DRIVE_ENC_TO_METERS_FACTOR);
   driveTalon->SetInverted(false);
-  driveTalon->SetStatusFramePeriod(StatusFrameEnhanced::Status_1_General, 10);
-  driveTalon->SetStatusFramePeriod(StatusFrameEnhanced::Status_2_Feedback0, 10);
-  driveTalon->SetSelectedSensorPosition(0);
+//   driveTalon->SetStatusFramePeriod(StatusFrameEnhanced::Status_1_General, 10);
+//   driveTalon->SetStatusFramePeriod(StatusFrameEnhanced::Status_2_Feedback0, 10);
   driveTalon->Config_kP(0, DRIVE_P_VALUE);
   driveTalon->Config_kI(0, DRIVE_I_VALUE);
   driveTalon->Config_kD(0, DRIVE_D_VALUE);

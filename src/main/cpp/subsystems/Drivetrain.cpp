@@ -8,6 +8,13 @@
 
 Drivetrain::Drivetrain() {
   RobotContainer::imu->Reset();
+
+  swerveModules = {
+    std::make_shared<DriveModule>(Constants::MotorIDs::driveFL, Constants::MotorIDs::turnFL, Constants::EncoderIDs::encoderFL, -0.09),
+    std::make_shared<DriveModule>(Constants::MotorIDs::driveRL, Constants::MotorIDs::turnRL, Constants::EncoderIDs::encoderRL, +0.29),
+    std::make_shared<DriveModule>(Constants::MotorIDs::driveRR, Constants::MotorIDs::turnRR, Constants::EncoderIDs::encoderRR, +1.25),
+    std::make_shared<DriveModule>(Constants::MotorIDs::driveFR, Constants::MotorIDs::turnFR, Constants::EncoderIDs::encoderFR, +1.35)
+  };
 }
 
 void Drivetrain::SetDrive(frc::ChassisSpeeds chassisSpeeds, units::meters_per_second_t _maxSpeed) {
@@ -104,7 +111,7 @@ void Drivetrain::CmdCancel() {
 }
 
 void Drivetrain::ResetSwerveEncoders() {
-  for (std::shared_ptr<DriveModule> module : swerveModules)
+  for (auto module : swerveModules)
     module->ResetEncoders();
 }
 

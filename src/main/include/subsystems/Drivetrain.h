@@ -3,6 +3,7 @@
 #include "utilities/DriveModule.h"
 #include <frc2/command/SubsystemBase.h>
 #include "Constants.h"
+#include <vector>
 
 #include "frc/geometry/Translation2d.h"
 #include "frc/geometry/Rotation2d.h"
@@ -55,12 +56,7 @@ class Drivetrain : public frc2::SubsystemBase {
     frc::Translation2d(+ROBOT_WIDTH/2, -ROBOT_LENGTH/2),
   };
 
-  wpi::array<std::shared_ptr<DriveModule>, 4> swerveModules {
-    std::make_shared<DriveModule>(Constants::MotorIDs::driveFL, Constants::MotorIDs::turnFL, Constants::EncoderIDs::encoderFL, -0.09),
-    std::make_shared<DriveModule>(Constants::MotorIDs::driveRL, Constants::MotorIDs::turnRL, Constants::EncoderIDs::encoderRL, +0.29),
-    std::make_shared<DriveModule>(Constants::MotorIDs::driveRR, Constants::MotorIDs::turnRR, Constants::EncoderIDs::encoderRR, +1.25),
-    std::make_shared<DriveModule>(Constants::MotorIDs::driveFR, Constants::MotorIDs::turnFR, Constants::EncoderIDs::encoderFR, +1.35),
-  };
+  std::vector<std::shared_ptr<DriveModule>> swerveModules = {};
 
   //Class converts chassis speeds into swerve module states.
   frc::SwerveDriveKinematics<4> kinematics { locations };
