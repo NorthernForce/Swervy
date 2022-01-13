@@ -4,7 +4,9 @@
 
 #pragma once
 #include <frc2/command/Command.h>
-#include <subsystems/Drivetrain.h>
+#include "subsystems/Drivetrain.h"
+#include "subsystems/IMU.h"
+
 #include <OI.h>
 #include "Constants.h"
 
@@ -14,6 +16,7 @@ class RobotContainer {
   void InitAutonomousCommands();
   static std::shared_ptr<OI> oi;
   static std::shared_ptr<Drivetrain> drivetrain;
+  static std::shared_ptr<IMU> imu;
 
  private:
   void InitSubsystems();

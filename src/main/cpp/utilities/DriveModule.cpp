@@ -1,83 +1,116 @@
 #include "utilities/DriveModule.h"
 
-DriveModule::DriveModule(uint8_t driveTalonID, uint8_t turnTalonID, uint8_t canCoderID, double tP, double tI, double tD, int tIZone) {
-    driveTalon = std::make_shared<WPI_TalonFX>(driveTalonID);
-    turnTalon = std::make_shared<WPI_TalonFX>(turnTalonID);
-    canCoder = std::make_shared<CANCoder>(canCoderID);
+#include "units/math.h"
+#include <cmath>
+#include <stdio.h>
 
-    ConfigureTalon(driveTalon);
-    ConfigureTalon(turnTalon);
+#define DRIVE_ENC_TO_METERS_FACTOR 0.00002226
+#define RAD_TO_ENC_FACTOR 10.1859
+
+#define DRIVE_MAX_VOLTAGE 12
+#define ROT_MAX_VOLTAGE 12
+
+#define DRIVE_P_VALUE 1
+#define DRIVE_I_VALUE 0
+#define DRIVE_D_VALUE 0
+#define DRIVE_I_ZONE_VALUE 0
+#define DRIVE_FF_VALUE 1023/(DRIVE_MAX_VOLTAGE/DRIVE_ENC_TO_METERS_FACTOR)
+
+#define ROT_P_VALUE 0.4
+#define ROT_I_VALUE 0
+#define ROT_D_VALUE 0
+#define ROT_I_ZONE_VALUE 0
+#define ROT_FF_VALUE 0
+
+DriveModule::DriveModule(uint8_t driveTalonID, uint8_t turnTalonID, uint8_t canCoderID, double turnOffset) 
+ : turnOffset(turnOffset) 
+{
+  driveTalon = std::make_shared<WPI_TalonFX>(driveTalonID);
+  turnTalon = std::make_shared<WPI_TalonFX>(turnTalonID);
+  canCoder = std::make_shared<CANCoder>(canCoderID);
+
+  ConfigureDriveTalon();
+  ConfigureTurnTalon();
 }
 
-void DriveModule::ConfigureTalon(std::shared_ptr<WPI_TalonFX> talon, double tP, double tI, double tD) {
-    talon->ConfigFactoryDefault();
-    talon->SetNeutralMode(NeutralMode::Brake);
-    
-    /* Config neutral deadband to be the smallest possible */
-    talon->ConfigNeutralDeadband(0.001);
-
-    talon->ConfigSelectedFeedbackSensor(FeedbackDevice::IntegratedSensor, pidLoopIdx, timeoutMs);
-                                        
-    talon->ConfigNominalOutputForward(0, timeoutMs);
-    talon->ConfigNominalOutputReverse(0, timeoutMs);
-    talon->ConfigPeakOutputForward(1, timeoutMs);
-    talon->ConfigPeakOutputReverse(-1, timeoutMs);
-
-    // talon->Config_kF(pidLoopIdx, ff, timeoutMs);
-    talon->Config_kP(pidLoopIdx, tP, timeoutMs);
-    talon->Config_kI(pidLoopIdx, tI, timeoutMs);
-    talon->Config_kD(pidLoopIdx, tD, timeoutMs);
-
-    talon->ConfigOpenloopRamp(2);
-    talon->SetInverted(false);
+void DriveModule::ConfigureDriveTalon() {
+  driveTalon->ConfigFactoryDefault();
+  driveTalon->SetNeutralMode(NeutralMode::Brake);
+  driveTalon->ConfigVoltageCompSaturation(DRIVE_MAX_VOLTAGE);
+  driveTalon->EnableVoltageCompensation(true);
+  driveTalon->ConfigSelectedFeedbackSensor(FeedbackDevice::IntegratedSensor);
+  driveTalon->ConfigSelectedFeedbackCoefficient(DRIVE_ENC_TO_METERS_FACTOR);
+  driveTalon->SetInverted(false);
+  driveTalon->SetStatusFramePeriod(StatusFrameEnhanced::Status_1_General, 10);
+  driveTalon->SetStatusFramePeriod(StatusFrameEnhanced::Status_2_Feedback0, 10);
+  driveTalon->SetSelectedSensorPosition(0);
+  driveTalon->Config_kP(0, DRIVE_P_VALUE);
+  driveTalon->Config_kI(0, DRIVE_I_VALUE);
+  driveTalon->Config_kD(0, DRIVE_D_VALUE);
+  driveTalon->Config_IntegralZone(0, DRIVE_I_ZONE_VALUE);
+  driveTalon->Config_kF(0, DRIVE_FF_VALUE);
 }
 
-void DriveModule::SetDriveSpeed(double speed) {
-    driveTalon->Set(speed);
+void DriveModule::ConfigureTurnTalon() {
+  turnTalon->ConfigFactoryDefault();
+  turnTalon->SetNeutralMode(NeutralMode::Coast);
+  turnTalon->ConfigVoltageCompSaturation(ROT_MAX_VOLTAGE);
+  turnTalon->EnableVoltageCompensation(true);
+  turnTalon->SetInverted(true);
+  turnTalon->ConfigRemoteFeedbackFilter(*canCoder.get(), 0);
+  turnTalon->Config_kP(0, ROT_P_VALUE);
+  turnTalon->Config_kI(0, ROT_I_VALUE);
+  turnTalon->Config_kD(0, ROT_D_VALUE);
+  turnTalon->Config_IntegralZone(0, ROT_I_ZONE_VALUE);
+  turnTalon->Config_kF(0, ROT_FF_VALUE);
+}
+ 
+void DriveModule::SetState(frc::SwerveModuleState targetState) {
+  frc::SwerveModuleState currentState = GetState();
+  frc::SwerveModuleState optimizedState = frc::SwerveModuleState::Optimize(targetState, currentState.angle);
+  
+  if (units::math::abs(optimizedState.speed) > 0.01_mps)
+    SetTurnTalon(optimizedState.angle.Radians());  
+
+  SetDriveTalon(ControlMode::PercentOutput, optimizedState.speed.value());
 }
 
-void DriveModule::SetTurnSpeed(double speed) {
-    turnTalon->Set(speed);
+frc::SwerveModuleState DriveModule::GetState() {
+  return { units::meters_per_second_t(GetVelocity()), frc::Rotation2d(GetAbsoluteRotation()) };
 }
 
-void DriveModule::SetTurnLocation(double loc) {
-    double base = GetTurnEncPosition() * encoder_cpr;
-    if (GetTurnEncPosition() >= 0) {
-        if ((base + (loc * encoder_cpr)) - GetTurnEncPosition() < -encoder_cpr/2)
-            base += encoder_cpr;
-        else if ((base + (loc * encoder_cpr)) - GetTurnEncPosition() > encoder_cpr/2)
-            base -= encoder_cpr;
-        double pos = ((loc * encoder_cpr) + (base));
-        //printf("pos < 0: %f", pos);
-        turnTalon->Set(TalonFXControlMode::Position, pos);
-    } else {
-        if ((base - ((1-loc) * encoder_cpr)) - GetTurnEncPosition() < -encoder_cpr/2)
-            base += encoder_cpr;
-        else if ((base -((1-loc) * encoder_cpr)) - GetTurnEncPosition() > encoder_cpr/2)
-            base -= encoder_cpr;
-        double pos = (base - (((1-loc) * encoder_cpr)));
-        turnTalon->Set(TalonFXControlMode::Position, pos);
-        //printf("pos > 0: %f", pos);
-    }
+void DriveModule::ResetEncoders() {
+  CANCoderConfiguration config;
+  canCoder->GetAllConfigs(config);
+  canCoder->ConfigMagnetOffset(config.magnetOffsetDegrees - canCoder->GetAbsolutePosition());
 }
 
-double DriveModule::GetDriveEncPosition() {
-    return driveTalon->GetSensorCollection().GetIntegratedSensorPosition();
+void DriveModule::SetDriveTalon(ControlMode controlMode, double value) {
+  driveTalon->Set(controlMode, value);
 }
 
-double DriveModule::GetTurnEncPosition() {
-    return turnTalon->GetSensorCollection().GetIntegratedSensorPosition() / 34.55;
+void DriveModule::SetTurnTalon(units::radian_t radians) {
+  units::radian_t rotation(radians - GetAbsoluteRotation());
+  units::radian_t absRotation(units::math::abs(rotation));
+  
+  // Fix the discontinuity problem.
+  // If the value is above π rad or below -π rad...
+  if(absRotation.value() > wpi::math::pi)
+    // Subtract 2π rad, or add 2π rad depending on the sign.
+    rotation = units::radian_t(rotation.value() - (2 * wpi::math::pi) * (std::signbit(rotation.value()) ? -1 : 1));
+  
+  double output = rotation.value() * RAD_TO_ENC_FACTOR;
+  output += GetRelativeRotation();
 }
 
-void DriveModule::SetIdleMode(IdleMode mode) {
-    driveTalon->SetNeutralMode((ctre::phoenix::motorcontrol::NeutralMode) mode);
+double DriveModule::GetVelocity() {
+  return driveTalon->GetSensorCollection().GetIntegratedSensorVelocity();
 }
 
-void DriveModule::StopDrive() {
-    driveTalon->Set(0);
+units::radian_t DriveModule::GetAbsoluteRotation() {
+  return units::radian_t(units::degree_t(canCoder->GetAbsolutePosition()));
 }
 
-void DriveModule::StopBoth() {
-    driveTalon->Set(0);
-    turnTalon->Set(0);
+double DriveModule::GetRelativeRotation() {
+  return turnTalon->GetSensorCollection().GetIntegratedSensorPosition() / 12.8; // gear ratio offset
 }

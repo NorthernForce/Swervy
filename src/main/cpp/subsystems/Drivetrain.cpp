@@ -1,148 +1,117 @@
-// Copyright (c) FIRST and other WPILib contributors.
-// Open Source Software; you can modify and/or share it under the terms of
-// the WPILib BSD license file in the root directory of this project.
 
-#include "subsystems/Drivetrain.h"
+#include "RobotContainer.h"
 #include "Constants.h"
+
+#include "frc/kinematics/SwerveModuleState.h"
 #include <cmath>
+#include <stdio.h>
 
 Drivetrain::Drivetrain() {
-    driveModuleFL = std::make_shared<DriveModule>(Constants::MotorIDs::driveFL, Constants::MotorIDs::turnFL, Constants::EncoderIDs::encoderFL, p, i, d, iZ);     
-    driveModuleFR = std::make_shared<DriveModule>(Constants::MotorIDs::driveFR, Constants::MotorIDs::turnFR, Constants::EncoderIDs::encoderFR, p, i, d, iZ); 
-    driveModuleRL = std::make_shared<DriveModule>(Constants::MotorIDs::driveRL, Constants::MotorIDs::turnRL, Constants::EncoderIDs::encoderRL, p, i, d, iZ); 
-    driveModuleRR = std::make_shared<DriveModule>(Constants::MotorIDs::driveRR, Constants::MotorIDs::turnRR, Constants::EncoderIDs::encoderRR, p, i, d, iZ); 
+  RobotContainer::imu->Reset();
 }
 
-void Drivetrain::Periodic() {
-    printf("FL position: %f\n", driveModuleFL->GetTurnEncPosition());
-    printf("FR position: %f\n", driveModuleFR->GetTurnEncPosition());
-    printf("RL position: %f\n", driveModuleRL->GetTurnEncPosition());
-    printf("RR position: %f\n", driveModuleRR->GetTurnEncPosition());
+void Drivetrain::SetDrive(frc::ChassisSpeeds chassisSpeeds, units::meters_per_second_t _maxSpeed) {
+  // Get target states.
+  wpi::array<frc::SwerveModuleState, 4> moduleStates = kinematics.ToSwerveModuleStates(chassisSpeeds);
+  kinematics.NormalizeWheelSpeeds(&moduleStates, _maxSpeed);
+
+  for (uint8_t i = 0; i < swerveModules.size(); i++) {
+    swerveModules.at(i)->SetState(moduleStates.at(i));
+  }
 }
 
-void Drivetrain::SetDriveSpeed(double fl, double fr, double rl, double rr) {
-    driveModuleFL->SetDriveSpeed(fl);
-    driveModuleFR->SetDriveSpeed(fr);
-    driveModuleRL->SetDriveSpeed(rl);
-    driveModuleRR->SetDriveSpeed(rr);
-    printf("fl: %f, fr: %f, rl: %f, rr, %f\n", fl, fr, rl, rr);
+void Drivetrain::SetDrive(units::velocity::meters_per_second_t xVelMeters,
+                     units::velocity::meters_per_second_t yVelMeters,
+                     units::degrees_per_second_t degreesPerSecond,
+                     bool isFieldCentric) {
+  if(isFieldCentric)
+    // Create relative chassis speeds struct from parameters, then call the other setDrive function.
+    SetDrive(frc::ChassisSpeeds::FromFieldRelativeSpeeds(xVelMeters, yVelMeters, units::radians_per_second_t(degreesPerSecond), GetRotation()), maxSpeed);
+  else
+    // Create chassis speeds struct from parameters, then call the other setDrive function.
+    SetDrive({ xVelMeters, yVelMeters, units::radians_per_second_t(degreesPerSecond) }, maxSpeed);
 }
 
-void Drivetrain::SetTurnSpeed(double fl, double fr, double rl, double rr) {
-    driveModuleFL->SetTurnSpeed(fl);
-    driveModuleFR->SetTurnSpeed(fr);
-    driveModuleRL->SetTurnSpeed(rl);
-    driveModuleRR->SetTurnSpeed(rr);
+void Drivetrain::Process() {
+  UpdateOdometry();
+
+  if (!cmdRunning) return;
+
+  frc::Pose2d currentPos = GetPose();
+  // TODO Drive
 }
 
-void Drivetrain::SetLocation(double fl, double fr, double rl, double rr) {
-    driveModuleFL->SetTurnLocation(fl);
-    driveModuleFR->SetTurnLocation(fr);
-    driveModuleRL->SetTurnLocation(rl);
-    driveModuleRR->SetTurnLocation(rr);
+frc::Rotation2d Drivetrain::GetRotation() {
+  double angle = std::fmod(RobotContainer::imu->GetRotation(), 360);
+
+  double rotation = 0;
+  if (abs(angle) > 180)
+    rotation = angle - 360 * (std::signbit(angle) ? -1 : 1);
+  else
+    rotation = angle;
+  
+  return frc::Rotation2d(units::degree_t(rotation));
 }
 
-void Drivetrain::SetAllDriveSpeed(double speed) {
-    SetDriveSpeed(speed, speed, speed, speed);
+void Drivetrain::UpdateOdometry() {
+  odometry.Update(GetRotation(),
+    swerveModules.at(0)->GetState(),
+    swerveModules.at(1)->GetState(),
+    swerveModules.at(2)->GetState(),
+    swerveModules.at(3)->GetState());
 }
 
-void Drivetrain::SetAllTurnSpeed(double speed) {
-    SetTurnSpeed(speed, speed, speed, speed);
+void Drivetrain::ResetOdometry(frc::Pose2d pose) {
+  odometry.ResetPosition(pose, GetRotation());
 }
 
-void Drivetrain::SetAllLocation(double loc) {
-    SetLocation(loc, loc, loc, loc);
+frc::Pose2d Drivetrain::GetPose() {
+  return odometry.GetPose();
 }
 
-void Drivetrain::StopDrive() {
-    driveModuleFL->StopDrive();
-    driveModuleFR->StopDrive();
-    driveModuleRL->StopDrive();
-    driveModuleRR->StopDrive();
+void Drivetrain::CmdGoToPose(frc::Pose2d pose, units::meters_per_second_t speed) {
+  if (!LastCmdIsFinished()) {
+    CmdCancel();
+  }
+  cmdRunning = true;
+  cmdPose = pose;
+  cmdSpeed = speed;
+}
+
+void Drivetrain::CmdRotate(units::degree_t angle, units::meters_per_second_t speed) {
+  if (!LastCmdIsFinished()) {
+    CmdCancel();
+  }
+  cmdRunning = true;  
+  frc::Pose2d currentPos = GetPose();
+  cmdPose = {currentPos.X(), currentPos.Y(), (currentPos.Rotation().Degrees() + angle)};
+  cmdSpeed = speed;
+}
+
+void Drivetrain::CmdDrive(units::meter_t amount, units::degree_t angle, units::meters_per_second_t speed) {
+  if (!LastCmdIsFinished()) {
+    CmdCancel();
+  }
+  // TODO Implement.
+}
+
+bool Drivetrain::LastCmdIsFinished() {
+  return cmdRunning;
+}
+
+void Drivetrain::CmdCancel() {
+  cmdRunning = false;
+}
+
+void Drivetrain::ResetSwerveEncoders() {
+  for (std::shared_ptr<DriveModule> module : swerveModules)
+    module->ResetEncoders();
 }
 
 void Drivetrain::StopAll() {
-    driveModuleFL->StopBoth();
-    driveModuleFR->StopBoth();
-    driveModuleRL->StopBoth();
-    driveModuleRR->StopBoth();
-}
-
-void Drivetrain::SwerveDrive(double fwd, double str, double rot) {
-    double a = str - (rot * (l / r));
-    double b = str + (rot * (l / r));
-    double c = fwd - (rot * (w / r));
-    double d = fwd + (rot * (w / r));
-
-    // printf("a: %f, b: %f, c: %f, d: %f\n", a, b, c, d);
-    //printf("str: %f, fwd: %f, rot: %f\n", str, fwd, rot);
-
-    double ws1 = sqrt((b * b) + (c * c));
-    double ws2 = sqrt((b * b) + (d * d));
-    double ws3 = sqrt((a * a) + (d * d));
-    double ws4 = sqrt((a * a) + (c * c));
-
-    double wa1 = atan2(b, c) * 180 / M_PI;
-    double wa2 = atan2(b, d) * 180 / M_PI;
-    double wa3 = atan2(a, d) * 180 / M_PI;
-    double wa4 = atan2(a, c) * 180 / M_PI;
-
-    //printf("Angles: wa4: %f, wa2: %f, wa1: %f, wa3: %f\n", wa4, wa2, wa1, wa3);
-
-    double max = ws1;
-    max = std::max(max, ws2);
-    max = std::max(max, ws3);
-    max = std::max(max, ws4);
-    if (max > 1) {
-        ws1 /= max;
-        ws2 /= max;
-        ws3 /= max;
-        ws4 /= max;
-    }
-    //printf("SetDriveSpeed: ws4: %f, ws2: %f, ws1: %f, ws3: %f", ws4, ws2, ws1, ws3);
-    SetDriveSpeed(ws4, ws2, ws1, ws3);
-    SetLocation(
-        GetAngleToLocation(wa4),
-        GetAngleToLocation(wa2),
-        GetAngleToLocation(wa1),
-        GetAngleToLocation(wa3)
-    );
-}
-
-void Drivetrain::HumanDrive(double fwd, double str, double rot) {
-    if (abs(rot) < 0.01)
-        rot = 0;
-
-    if (abs(fwd) < .15 && abs(str) < .15 && abs(rot) < 0.01) {
-        StopDrive();
-    } else {
-        SetDriveBrakeMode(false);
-        SwerveDrive(fwd, str, rot);
-    }
-}
-
-void Drivetrain::TankDrive(double left, double right) {
-    SetAllLocation(0);
-    SetDriveSpeed(right, left, right, left);
-}
-
-double Drivetrain::GetAngleToLocation(double ang) {
-    if (ang < 0)
-        return 0.5 + ((180 - abs(ang)) / 360);
-    else
-        return ang / 360;
-}
-
-void Drivetrain::SetDriveBrakeMode(bool brake) {
-    if (brake) {
-        driveModuleFL->SetIdleMode(DriveModule::IdleMode::Brake);
-        driveModuleFR->SetIdleMode(DriveModule::IdleMode::Brake);
-        driveModuleRL->SetIdleMode(DriveModule::IdleMode::Brake);
-        driveModuleRR->SetIdleMode(DriveModule::IdleMode::Brake);
-    } else {
-        driveModuleFL->SetIdleMode(DriveModule::IdleMode::Coast);
-        driveModuleFR->SetIdleMode(DriveModule::IdleMode::Coast);
-        driveModuleRL->SetIdleMode(DriveModule::IdleMode::Coast);
-        driveModuleRR->SetIdleMode(DriveModule::IdleMode::Coast);
+    CmdCancel();
+    for (std::shared_ptr<DriveModule> module : swerveModules) {
+      module->SetDriveTalon(ControlMode::PercentOutput, 0);
+      module->SetDriveTalon(ControlMode::PercentOutput, 0);
     }
 }

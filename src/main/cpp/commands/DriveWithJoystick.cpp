@@ -16,8 +16,8 @@ void DriveWithJoystick::Execute() {
     speed = driveControls[0];
     yaw = driveControls[1];
     strafe = driveControls[2];
-
-    RobotContainer::drivetrain->SwerveDrive(speed, strafe, yaw);
+    RobotContainer::drivetrain->SetDrive(units::velocity::meters_per_second_t(-strafe), units::velocity::meters_per_second_t(speed), units::radians_per_second_t(yaw), false);
+    //RobotContainer::drivetrain->SetDrive(speed, strafe, yaw);
 }
 
 void DriveWithJoystick::End(bool interrupted) {

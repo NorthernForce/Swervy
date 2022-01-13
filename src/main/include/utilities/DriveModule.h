@@ -1,37 +1,31 @@
+#pragma once
+
+#include "frc/kinematics/SwerveModuleState.h"
 #include <ctre/Phoenix.h>
 #include <memory>
 
+/**
+ * The DriveModule class.
+ * Represents a single swerve module on the robot.
+ */
 class DriveModule {
  public:
-    enum IdleMode {
-        Coast = ctre::phoenix::motorcontrol::NeutralMode::Coast,
-        Brake = ctre::phoenix::motorcontrol::NeutralMode::Brake       
-    };
-
-    DriveModule(uint8_t driveTalonID, uint8_t turnTalonID, uint8_t canCoderID, double tP, double tI, double tD, int tIZone);
-    void ConfigureTalon(std::shared_ptr<WPI_TalonFX> talon, double tP=1, double tI=0, double tD=0);
-    void SetDriveSpeed(double speed);
-    void SetTurnSpeed(double speed);
-    void SetTurnLocation(double loc);
-    double GetTurnEncPosition();
-    double GetDriveEncPosition();
-    void SetIdleMode(IdleMode mode);
-    void StopDrive();
-    void StopBoth();
-
+  DriveModule(uint8_t driveTalonID, uint8_t turnTalonID, uint8_t canCoderID, double turnOffset);
+  void ConfigureDriveTalon();
+  void ConfigureTurnTalon();
+  void SetState(frc::SwerveModuleState state);
+  frc::SwerveModuleState GetState();
+  void ResetEncoders();
+  void SetDriveTalon(ControlMode controlMode, double value);
+  void SetTurnTalon(units::radian_t radians);
+  double GetVelocity();
+  units::radian_t GetAbsoluteRotation();
+  double GetRelativeRotation();
+  
  private:
-    std::shared_ptr<WPI_TalonFX> driveTalon;
-    std::shared_ptr<WPI_TalonFX> turnTalon;
-    std::shared_ptr<CANCoder> canCoder;
-    const uint16_t encoder_cpr = 2048;
+  std::shared_ptr<WPI_TalonFX> driveTalon;
+  std::shared_ptr<WPI_TalonFX> turnTalon;
+  std::shared_ptr<CANCoder> canCoder;
 
-    double p = 0.5;
-    double i = 0;
-    double d = 0; 
-    double ff = (1023/20660);
-    const uint16_t maxI = 300;
-    const double maxOutput = 1;
-    const double minOutput = -1;
-    uint8_t timeoutMs = 30;
-    uint8_t pidLoopIdx = 0; //default
+  const double turnOffset;
 };

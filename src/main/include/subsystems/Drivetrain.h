@@ -1,51 +1,75 @@
-// Copyright (c) FIRST and other WPILib contributors.
-// Open Source Software; you can modify and/or share it under the terms of
-// the WPILib BSD license file in the root directory of this project.
-
 #pragma once
 
-#include <frc2/command/SubsystemBase.h>
-#include <frc/drive/RobotDriveBase.h>
 #include "utilities/DriveModule.h"
+#include <frc2/command/SubsystemBase.h>
+#include "Constants.h"
+
+#include "frc/geometry/Translation2d.h"
+#include "frc/geometry/Rotation2d.h"
+#include "frc/geometry/Pose2d.h"
+#include "frc/kinematics/SwerveDriveKinematics.h"
+#include "frc/kinematics/SwerveDriveOdometry.h"
+#include "frc/kinematics/ChassisSpeeds.h"
+#include "wpi/array.h"
+#include "wpi/math"
+
+#define ROBOT_WIDTH 0.362_m
+#define ROBOT_LENGTH 0.66_m
 
 class Drivetrain : public frc2::SubsystemBase {
  public:
   Drivetrain();
 
-  void Periodic() override;
-  void SetDriveSpeed(double fl, double fr, double rl, double rr);
-  void SetTurnSpeed(double fl, double fr, double rl, double rr);
-  void SetLocation(double fl, double fr, double rl, double rr);
-  void StopDrive();
+  void SetDrive(frc::ChassisSpeeds chassisSpeeds, units::meters_per_second_t maxSpeed);
+  void SetDrive(units::velocity::meters_per_second_t xVelMeters,
+                units::velocity::meters_per_second_t yVelMeters,
+                units::degrees_per_second_t degreesPerSecond,
+                bool isFieldCentric = false);
+  
+  static constexpr units::meters_per_second_t maxSpeed = 4_mps;
+
+  void Process();
+  frc::Rotation2d GetRotation();
+  void UpdateOdometry();
+  void ResetOdometry(frc::Pose2d pose);
+  frc::Pose2d GetPose();
+  void CmdGoToPose(frc::Pose2d pose, units::meters_per_second_t speed = maxSpeed/2);
+  void CmdRotate(units::degree_t angle, units::meters_per_second_t speed = maxSpeed/2);
+  void CmdDrive(units::meter_t amount, units::degree_t angle = units::degree_t(0), units::meters_per_second_t speed = maxSpeed/2);
+  bool LastCmdIsFinished();
+  void CmdCancel();
+  void ResetSwerveEncoders();
   void StopAll();
-  void SetAllDriveSpeed(double speed);
-  void SetAllTurnSpeed(double speed);
-  void SetAllLocation(double loc);
 
-  void SwerveDrive(double fwd, double str, double rot);
-  void HumanDrive(double fwd, double str, double rot);
-  void TankDrive(double left, double right);
+  /**
+   * The locations of the swerve modules on the robot.
+   *
+   * Swerve Module Arrangement:
+   *           0 2
+   *           1 3
+   */
+  wpi::array<frc::Translation2d, 4> locations {
+    frc::Translation2d(-ROBOT_WIDTH/2, +ROBOT_LENGTH/2),
+    frc::Translation2d(-ROBOT_WIDTH/2, -ROBOT_LENGTH/2),
+    frc::Translation2d(+ROBOT_WIDTH/2, +ROBOT_LENGTH/2),
+    frc::Translation2d(+ROBOT_WIDTH/2, -ROBOT_LENGTH/2),
+  };
 
-  double GetAngleToLocation(double loc);
-  void SetDriveBrakeMode(bool brake);
+  wpi::array<std::shared_ptr<DriveModule>, 4> swerveModules {
+    std::make_shared<DriveModule>(Constants::MotorIDs::driveFL, Constants::MotorIDs::turnFL, Constants::EncoderIDs::encoderFL, -0.09),
+    std::make_shared<DriveModule>(Constants::MotorIDs::driveRL, Constants::MotorIDs::turnRL, Constants::EncoderIDs::encoderRL, +0.29),
+    std::make_shared<DriveModule>(Constants::MotorIDs::driveRR, Constants::MotorIDs::turnRR, Constants::EncoderIDs::encoderRR, +1.25),
+    std::make_shared<DriveModule>(Constants::MotorIDs::driveFR, Constants::MotorIDs::turnFR, Constants::EncoderIDs::encoderFR, +1.35),
+  };
+
+  //Class converts chassis speeds into swerve module states.
+  frc::SwerveDriveKinematics<4> kinematics { locations };
+
+  //Handles field-centric stuff.
+  frc::SwerveDriveOdometry<4> odometry { kinematics, GetRotation() };
 
  private:
-    std::shared_ptr<DriveModule> driveModuleFL;
-    std::shared_ptr<DriveModule> driveModuleFR;
-    std::shared_ptr<DriveModule> driveModuleRL;
-    std::shared_ptr<DriveModule> driveModuleRR;
-
-    // double p = 4.2;
-    // double i = 0.01;
-    // double d = 0;
-    // double iZ = 200;
-
-    double p = 1;
-    double i = 0;
-    double d = 0;
-    double iZ = 0;
-
-    const double l = 29;
-    const double w = 29;
-    const double r = sqrt((l * l) + (w * w));
+  bool cmdRunning = false;
+  frc::Pose2d cmdPose;
+  units::meters_per_second_t cmdSpeed;
 };

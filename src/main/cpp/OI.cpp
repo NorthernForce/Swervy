@@ -4,7 +4,6 @@
 #include "OI.h"
 #include "Constants.h"
 #include "commands/DriveWithJoystick.h"
-#include "commands/TankDriveForward.h"
 
 std::shared_ptr<frc::XboxController> OI::driverController;
 
@@ -17,12 +16,10 @@ void OI::InitControllers() {
     driverController = std::make_shared<frc::XboxController>(Constants::driverControllerID);
 }
 
-void OI::MapControllerButtons() {
-    SimpleButton(driverController, Xbox::A_button).WhileHeld(TankDriveForward());
-}
+void OI::MapControllerButtons() {}
 
 std::vector<double> OI::GetRawDriveControls() {
-    speed = -1 * driverController->GetY(frc::XboxController::JoystickHand::kLeftHand);
+    speed = driverController->GetY(frc::XboxController::JoystickHand::kLeftHand);
     yaw = driverController->GetX(frc::XboxController::JoystickHand::kLeftHand);
     strafe = driverController->GetX(frc::XboxController::JoystickHand::kRightHand);
     return {speed, yaw, strafe};
