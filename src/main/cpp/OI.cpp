@@ -23,9 +23,9 @@ void OI::MapControllerButtons() {
 
 std::vector<double> OI::GetRawDriveControls() {
     speed = -1 * driverController->GetY(frc::XboxController::JoystickHand::kLeftHand);
-    yaw = driverController->GetX(frc::XboxController::JoystickHand::kLeftHand);
     strafe = driverController->GetX(frc::XboxController::JoystickHand::kRightHand);
-    return {speed, yaw, strafe};
+    yaw = driverController->GetX(frc::XboxController::JoystickHand::kLeftHand);
+    return {speed, strafe, yaw};
 }
 
 std::vector<double> OI::GetDriveControls() {

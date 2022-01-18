@@ -14,8 +14,8 @@ void DriveWithJoystick::Initialize() {}
 void DriveWithJoystick::Execute() {
     auto driveControls = RobotContainer::oi->GetDriveControls();
     speed = driveControls[0];
-    yaw = driveControls[1];
-    strafe = driveControls[2];
+    strafe = driveControls[1];
+    yaw = driveControls[2];
 
     RobotContainer::drivetrain->SwerveDrive(speed, strafe, yaw);
 }
