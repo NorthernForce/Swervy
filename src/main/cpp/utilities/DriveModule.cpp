@@ -1,6 +1,7 @@
 #include "utilities/DriveModule.h"
 
-DriveModule::DriveModule(uint8_t driveTalonID, uint8_t turnTalonID, uint8_t canCoderID, double tP, double tI, double tD, int tIZone) {
+DriveModule::DriveModule(uint8_t driveTalonID, uint8_t turnTalonID, uint8_t canCoderID, double tP, double tI, double tD, int tIZone)
+ : canCoderID(canCoderID) {
     driveTalon = std::make_shared<WPI_TalonFX>(driveTalonID);
     turnTalon = std::make_shared<WPI_TalonFX>(turnTalonID);
     canCoder = std::make_shared<CANCoder>(canCoderID);
@@ -16,8 +17,9 @@ void DriveModule::ConfigureTalon(std::shared_ptr<WPI_TalonFX> talon, double tP, 
     /* Config neutral deadband to be the smallest possible */
     talon->ConfigNeutralDeadband(0.001);
 
-    talon->ConfigSelectedFeedbackSensor(FeedbackDevice::IntegratedSensor, pidLoopIdx, timeoutMs);
-                                        
+    talon->ConfigRemoteFeedbackFilter(canCoderID, RemoteSensorSource::RemoteSensorSource_TalonFX_SelectedSensor, 0, timeoutMs);
+    talon->ConfigSelectedFeedbackSensor(FeedbackDevice::RemoteSensor0, pidLoopIdx, timeoutMs);                   
+
     talon->ConfigNominalOutputForward(0, timeoutMs);
     talon->ConfigNominalOutputReverse(0, timeoutMs);
     talon->ConfigPeakOutputForward(1, timeoutMs);
@@ -66,7 +68,7 @@ double DriveModule::GetDriveEncPosition() {
 }
 
 double DriveModule::GetTurnEncPosition() {
-    return turnTalon->GetSensorCollection().GetIntegratedSensorPosition() / 34.55;
+    return turnTalon->GetSelectedSensorPosition();
 }
 
 void DriveModule::SetIdleMode(IdleMode mode) {

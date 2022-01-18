@@ -34,4 +34,6 @@ class DriveModule {
     const double minOutput = -1;
     uint8_t timeoutMs = 30;
     uint8_t pidLoopIdx = 0; //default
+
+    uint8_t canCoderID;
 };
