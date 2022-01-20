@@ -66,7 +66,7 @@ void DriveModule::SetTurnPosition(double pos) {
 }
 
 void DriveModule::SetTurnLocation(double loc) {
-    double enc_loc = loc * encoder_cpr;
+    double enc_loc = loc * encoder_coeff;
     double turnp = 0.0005;
     double turni = 0;
     double turnd = 0.00000;
