@@ -21,6 +21,7 @@ class Drivetrain : public frc2::SubsystemBase {
   void SetAllDriveSpeed(double speed);
   void SetAllTurnSpeed(double speed);
   void SetAllLocation(double loc);
+  void SetAllPosition(double pos);
 
   void SwerveDrive(double fwd, double str, double rot);
   void HumanDrive(double fwd, double str, double rot);
