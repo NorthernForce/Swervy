@@ -1,4 +1,6 @@
 #include "utilities/DriveModule.h"
+#include <frc2/command/PIDCommand.h>
+#include <frc2/command/PIDSubsystem.h>
 
 DriveModule::DriveModule(uint8_t driveTalonID, uint8_t turnTalonID, uint8_t canCoderID, double tP, double tI, double tD, int tIZone) {
     driveTalon = std::make_shared<WPI_TalonFX>(driveTalonID);
@@ -41,24 +43,35 @@ void DriveModule::SetTurnSpeed(double speed) {
 }
 
 void DriveModule::SetTurnLocation(double loc) {
-    double base = GetTurnEncPosition() * encoder_cpr;
-    if (GetTurnEncPosition() >= 0) {
-        if ((base + (loc * encoder_cpr)) - GetTurnEncPosition() < -encoder_cpr/2)
-            base += encoder_cpr;
-        else if ((base + (loc * encoder_cpr)) - GetTurnEncPosition() > encoder_cpr/2)
-            base -= encoder_cpr;
-        double pos = ((loc * encoder_cpr) + (base));
-        //printf("pos < 0: %f", pos);
-        turnTalon->Set(TalonFXControlMode::Position, pos);
-    } else {
-        if ((base - ((1-loc) * encoder_cpr)) - GetTurnEncPosition() < -encoder_cpr/2)
-            base += encoder_cpr;
-        else if ((base -((1-loc) * encoder_cpr)) - GetTurnEncPosition() > encoder_cpr/2)
-            base -= encoder_cpr;
-        double pos = (base - (((1-loc) * encoder_cpr)));
-        turnTalon->Set(TalonFXControlMode::Position, pos);
-        //printf("pos > 0: %f", pos);
-    }
+    double enc_loc = loc * encoder_cpr;
+    double turnp = 0.0005;
+    double turni = 0;
+    double turnd = 0.00000;
+
+    frc2::PIDController pid{turnp, turni, turnd};
+    double speed = pid.Calculate(GetTurnEncPosition(), enc_loc);
+    speed = std::max(std::min(speed, 1.0), -1.0);
+
+    SetTurnSpeed(speed);
+
+    // double base = GetTurnEncPosition() * encoder_cpr;
+    // if (GetTurnEncPosition() >= 0) {
+    //     if ((base + (loc * encoder_cpr)) - GetTurnEncPosition() < -encoder_cpr/2)
+    //         base += encoder_cpr;
+    //     else if ((base + (loc * encoder_cpr)) - GetTurnEncPosition() > encoder_cpr/2)
+    //         base -= encoder_cpr;
+    //     double pos = ((loc * encoder_cpr) + (base));
+    //     //printf("pos < 0: %f", pos);
+    //     turnTalon->Set(TalonFXControlMode::Position, pos);
+    // } else {
+    //     if ((base - ((1-loc) * encoder_cpr)) - GetTurnEncPosition() < -encoder_cpr/2)
+    //         base += encoder_cpr;
+    //     else if ((base -((1-loc) * encoder_cpr)) - GetTurnEncPosition() > encoder_cpr/2)
+    //         base -= encoder_cpr;
+    //     double pos = (base - (((1-loc) * encoder_cpr)));
+    //     turnTalon->Set(TalonFXControlMode::Position, pos);
+    //     //printf("pos > 0: %f", pos);
+    // }
 }
 
 double DriveModule::GetDriveEncPosition() {
