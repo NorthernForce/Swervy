@@ -27,7 +27,7 @@ class DriveModule {
     std::shared_ptr<CANCoder> canCoder;
     const double encoder_coeff = (360.0/4096.0);
 
-    double p = 0.5;
+    double p = 1;
     double i = 0;
     double d = 0; 
     double ff = (1023/20660);

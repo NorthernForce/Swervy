@@ -106,14 +106,16 @@ void Drivetrain::SwerveDrive(double fwd, double str, double rot) {
         ws3 /= max;
         ws4 /= max;
     }
-    printf("SetDriveSpeed: ws4: %f, ws2: %f, ws1: %f, ws3: %f", ws4, ws2, ws1, ws3);
+    printf("SetDriveSpeed: ws4: %f, ws2: %f, ws1: %f, ws3: %f\n", ws4, ws2, ws1, ws3);
     SetDriveSpeed(ws4, ws2, ws1, ws3);
+    printf("SetDriveLocation: wa4: %f, wa2: %f, wa1: %f, wa3: %f\n", wa4, wa2, wa1, wa3);
     SetLocation(
         GetAngleToLocation(wa4),
         GetAngleToLocation(wa2),
         GetAngleToLocation(wa1),
         GetAngleToLocation(wa3)
     );
+
 }
 
 void Drivetrain::HumanDrive(double fwd, double str, double rot) {

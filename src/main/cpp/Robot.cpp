@@ -39,7 +39,7 @@ void Robot::AutonomousInit() {}
 void Robot::AutonomousPeriodic() {}
 
 void Robot::TeleopInit() {
-    RobotContainer::drivetrain->SetAllPosition(180);
+    // RobotContainer::drivetrain->SetAllPosition(180);
 
   // This makes sure that the autonomous stops running when
   // teleop starts running. If you want the autonomous to
