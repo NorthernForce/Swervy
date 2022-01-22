@@ -25,7 +25,7 @@ class DriveModule {
     std::shared_ptr<WPI_TalonFX> driveTalon;
     std::shared_ptr<WPI_TalonFX> turnTalon;
     std::shared_ptr<CANCoder> canCoder;
-    const double encoder_coeff = (360.0/4096.0);
+    const double degreePerEncoder = (360.0/4096.0);
 
     double p = 0.5;
     double i = 0;

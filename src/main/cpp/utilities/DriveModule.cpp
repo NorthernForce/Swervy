@@ -66,17 +66,22 @@ void DriveModule::SetTurnPosition(double pos) {
 }
 
 void DriveModule::SetTurnLocation(double loc) {
-    double enc_loc = loc * encoder_coeff;
-    double turnp = 0.0005;
+    printf("Loc: %f\n", loc);
+    double enc_loc = loc / degreePerEncoder;
+    double turnp = 0.001;
     double turni = 0;
     double turnd = 0.00000;
 
     frc2::PIDController pid{turnp, turni, turnd};
     double speed = pid.Calculate(GetTurnEncPosition(), enc_loc);
-    speed = std::max(std::min(speed, 1.0), -1.0);
+    speed = std::max(std::min(speed, 0.5), -0.5);
+    printf("speed: %f\n", speed);
 
-    SetTurnSpeed(speed);
+    SetTurnSpeed(-speed);
 
+//*******************************************************
+
+    // int encoder_cpr = 4096;
     // double base = GetTurnEncPosition() * encoder_cpr;
     // if (GetTurnEncPosition() >= 0) {
     //     if ((base + (loc * encoder_cpr)) - GetTurnEncPosition() < -encoder_cpr/2)
@@ -93,7 +98,7 @@ void DriveModule::SetTurnLocation(double loc) {
     //         base -= encoder_cpr;
     //     double pos = (base - (((1-loc) * encoder_cpr)));
     //     turnTalon->Set(TalonFXControlMode::Position, pos);
-    //     //printf("pos > 0: %f", pos);
+        //printf("pos > 0: %f", pos);
     // }
 }
 
@@ -102,7 +107,7 @@ double DriveModule::GetDriveEncPosition() {
 }
 
 double DriveModule::GetTurnEncPosition() {
-    return (turnTalon->GetSelectedSensorPosition() * encoder_coeff);
+    return (turnTalon->GetSelectedSensorPosition() * degreePerEncoder);
 }
 
 void DriveModule::SetIdleMode(IdleMode mode) {

@@ -16,10 +16,10 @@ Drivetrain::Drivetrain() {
 }
 
 void Drivetrain::Periodic() {
-    // printf("FL position: %f\n", driveModuleFL->GetTurnEncPosition());
-    // printf("FR position: %f\n", driveModuleFR->GetTurnEncPosition());
-    // printf("RL position: %f\n", driveModuleRL->GetTurnEncPosition());
-    // printf("RR position: %f\n", driveModuleRR->GetTurnEncPosition());
+    printf("FL position: %f\n", driveModuleFL->GetTurnEncPosition());
+    printf("FR position: %f\n", driveModuleFR->GetTurnEncPosition());
+    printf("RL position: %f\n", driveModuleRL->GetTurnEncPosition());
+    printf("RR position: %f\n", driveModuleRR->GetTurnEncPosition());
 }
 
 void Drivetrain::SetDriveSpeed(double fl, double fr, double rl, double rr) {
@@ -108,13 +108,13 @@ void Drivetrain::SwerveDrive(double fwd, double str, double rot) {
         ws3 /= max;
         ws4 /= max;
     }
-    printf("SetDriveSpeed: ws4: %f, ws2: %f, ws1: %f, ws3: %f", ws4, ws2, ws1, ws3);
+    // printf("SetDriveSpeed: ws4: %f, ws2: %f, ws1: %f, ws3: %f", ws4, ws2, ws1, ws3);
     SetDriveSpeed(ws4, ws2, ws1, ws3);
-    SetLocation(
-        GetAngleToLocation(wa4),
-        GetAngleToLocation(wa2),
-        GetAngleToLocation(wa1),
-        GetAngleToLocation(wa3)
+    SetLocation(wa4, wa2, wa1, wa3
+        // GetAngleToLocation(wa4),
+        // GetAngleToLocation(wa2),
+        // GetAngleToLocation(wa1),
+        // GetAngleToLocation(wa3)
     );
 }
 
