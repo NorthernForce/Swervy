@@ -77,6 +77,13 @@ void Drivetrain::StopAll() {
     driveModuleRR->StopBoth();
 }
 
+void Drivetrain::ResetEncoders() {
+    driveModuleFL->ResetEncoder();
+    driveModuleFR->ResetEncoder();
+    driveModuleRL->ResetEncoder();
+    driveModuleRR->ResetEncoder();
+}
+
 void Drivetrain::SwerveDrive(double fwd, double str, double rot) {
     double a = str - (rot * (l / r));
     double b = str + (rot * (l / r));

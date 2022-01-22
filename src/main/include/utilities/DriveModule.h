@@ -17,6 +17,7 @@ class DriveModule {
     void SetTurnLocation(double loc);
     double GetTurnEncPosition();
     double GetDriveEncPosition();
+    void ResetEncoder();
     void SetIdleMode(IdleMode mode);
     void StopDrive();
     void StopBoth();

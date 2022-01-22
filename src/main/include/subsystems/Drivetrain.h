@@ -18,6 +18,7 @@ class Drivetrain : public frc2::SubsystemBase {
   void SetLocation(double fl, double fr, double rl, double rr);
   void StopDrive();
   void StopAll();
+  void ResetEncoders();
   void SetAllDriveSpeed(double speed);
   void SetAllTurnSpeed(double speed);
   void SetAllLocation(double loc);
