@@ -5,6 +5,7 @@
 #include "Constants.h"
 #include "commands/DriveWithJoystick.h"
 #include "commands/TankDriveForward.h"
+#include "commands/ZeroTurnMotors.h"
 
 std::shared_ptr<frc::XboxController> OI::driverController;
 
@@ -18,7 +19,7 @@ void OI::InitControllers() {
 }
 
 void OI::MapControllerButtons() {
-    SimpleButton(driverController, Xbox::A_button).WhileHeld(TankDriveForward());
+    SimpleButton(driverController, Xbox::menu_button).WhileHeld(ZeroTurnMotors());
 }
 
 std::vector<double> OI::GetRawDriveControls() {

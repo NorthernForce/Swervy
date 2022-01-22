@@ -1,4 +1,6 @@
 #include <ctre/Phoenix.h>
+#include <frc2/command/PIDCommand.h>
+#include <frc2/command/PIDSubsystem.h>
 #include <memory>
 
 class DriveModule {
@@ -9,8 +11,8 @@ class DriveModule {
     };
 
     DriveModule(uint8_t driveTalonID, uint8_t turnTalonID, uint8_t canCoderID, double tP, double tI, double tD, int tIZone);
-    void ConfigureDriveTalon(std::shared_ptr<WPI_TalonFX> talon, double tP=1, double tI=0, double tD=0);
-    void ConfigureTurnTalon(std::shared_ptr<WPI_TalonFX> talon, double tP=1, double tI=0, double tD=0);
+    void ConfigureDriveTalon();
+    void ConfigureTurnTalon();
     void SetDriveSpeed(double speed);
     void SetTurnSpeed(double speed);
     void SetTurnPosition(double pos);
@@ -39,4 +41,11 @@ class DriveModule {
     uint8_t pidLoopIdx = 0; //default
 
     uint8_t canCoderID;
+
+    // turn PID
+    double turnp = 0.001;
+    double turni = 0.0;
+    double turnd = 0.00000;
+
+    frc2::PIDController pid{turnp, turni, turnd};
 };

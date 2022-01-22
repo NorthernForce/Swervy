@@ -8,7 +8,7 @@
 #include <frc2/command/CommandScheduler.h>
 
 void Robot::RobotInit() {
-  RobotContainer::drivetrain->ResetEncoders();
+  //RobotContainer::drivetrain->ResetEncoders();
 }
 
 /**
@@ -41,7 +41,7 @@ void Robot::AutonomousInit() {}
 void Robot::AutonomousPeriodic() {}
 
 void Robot::TeleopInit() {
-    // RobotContainer::drivetrain->SetAllPosition(180);
+    //RobotContainer::drivetrain->SetAllPosition(0);
     
 
   // This makes sure that the autonomous stops running when
