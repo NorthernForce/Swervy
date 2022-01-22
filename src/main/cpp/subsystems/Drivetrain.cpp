@@ -77,6 +77,13 @@ void Drivetrain::StopAll() {
     driveModuleRR->StopBoth();
 }
 
+void Drivetrain::ResetEncoders() {
+    driveModuleFL->ResetEncoder();
+    driveModuleFR->ResetEncoder();
+    driveModuleRL->ResetEncoder();
+    driveModuleRR->ResetEncoder();
+}
+
 void Drivetrain::SwerveDrive(double fwd, double str, double rot) {
     double a = str - (rot * (l / r));
     double b = str + (rot * (l / r));
@@ -108,7 +115,7 @@ void Drivetrain::SwerveDrive(double fwd, double str, double rot) {
         ws3 /= max;
         ws4 /= max;
     }
-    printf("SetDriveSpeed: ws4: %f, ws2: %f, ws1: %f, ws3: %f", ws4, ws2, ws1, ws3);
+    printf("SetDriveSpeed: ws4: %f, ws2: %f, ws1: %f, ws3: %f\n", ws4, ws2, ws1, ws3);
     SetDriveSpeed(ws4, ws2, ws1, ws3);
     SetLocation(
         GetAngleToLocation(wa4),
