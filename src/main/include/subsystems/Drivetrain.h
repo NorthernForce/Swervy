@@ -50,4 +50,5 @@ class Drivetrain : public frc2::SubsystemBase {
     const double l = 29;
     const double w = 29;
     const double r = sqrt((l * l) + (w * w));
+    uint8_t loopCycleCounter = 0;
 };

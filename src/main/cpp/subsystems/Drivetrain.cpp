@@ -16,10 +16,13 @@ Drivetrain::Drivetrain() {
 }
 
 void Drivetrain::Periodic() {
-    printf("FL position: %f\n", driveModuleFL->GetTurnEncPosition());
-    printf("FR position: %f\n", driveModuleFR->GetTurnEncPosition());
-    printf("RL position: %f\n", driveModuleRL->GetTurnEncPosition());
-    printf("RR position: %f\n", driveModuleRR->GetTurnEncPosition());
+    if (loopCycleCounter % 25 == 0) {
+        printf("FL position: %f\n", driveModuleFL->GetTurnEncPosition());
+        printf("FR position: %f\n", driveModuleFR->GetTurnEncPosition());
+        printf("RL position: %f\n", driveModuleRL->GetTurnEncPosition());
+        printf("RR position: %f\n", driveModuleRR->GetTurnEncPosition());
+        loopCycleCounter = 0;
+    }
 }
 
 void Drivetrain::SetDriveSpeed(double fl, double fr, double rl, double rr) {
@@ -103,7 +106,7 @@ void Drivetrain::SwerveDrive(double fwd, double str, double rot) {
     double wa3 = atan2(a, d) * 180 / M_PI;
     double wa4 = atan2(a, c) * 180 / M_PI;
 
-    printf("Angles: wa4: %f, wa2: %f, wa1: %f, wa3: %f\n", wa4, wa2, wa1, wa3);
+    //printf("Angles: wa4: %f, wa2: %f, wa1: %f, wa3: %f\n", wa4, wa2, wa1, wa3);
 
     double max = ws1;
     max = std::max(max, ws2);

@@ -2,6 +2,8 @@
 #include <frc2/command/PIDCommand.h>
 #include <frc2/command/PIDSubsystem.h>
 #include <memory>
+#include <vector>
+#include "Constants.h"
 
 class DriveModule {
  public:
@@ -43,9 +45,16 @@ class DriveModule {
     uint8_t canCoderID;
 
     // turn PID
-    double turnp = 0.001;
+    double turnp = 0.002;
     double turni = 0.0;
     double turnd = 0.00000;
 
     frc2::PIDController pid{turnp, turni, turnd};
+    double offsets[4] = {
+        256.289,
+        136.033,
+        4.572,
+        293.203
+    };
+    uint8_t firstEncoderID = Constants::EncoderIDs::encoderFL;
 };

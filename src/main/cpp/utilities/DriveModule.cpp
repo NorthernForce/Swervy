@@ -62,11 +62,11 @@ void DriveModule::SetTurnPosition(double pos) {
 
 void DriveModule::SetTurnLocation(double loc) {
     printf("Loc: %f\n", loc);
-    double enc_loc = loc / degreePerEncoder;
+    double enc_loc = loc - offsets[canCoderID-firstEncoderID];
     
     //printf("encoder pos: %f, location: %f\n", GetTurnEncPosition(), enc_loc);
     double speed = pid.Calculate(GetTurnEncPosition(), loc);
-    speed = std::max(std::min(speed, 0.3), -0.3);
+    speed = std::max(std::min(speed, 0.5), -0.5);
     //printf("speed: %f\n", speed);
 
     SetTurnSpeed(speed);
@@ -99,7 +99,7 @@ double DriveModule::GetDriveEncPosition() {
 }
 
 double DriveModule::GetTurnEncPosition() {
-    return (turnTalon->GetSelectedSensorPosition() * degreePerEncoder);
+    return (turnTalon->GetSelectedSensorPosition() * degreePerEncoder) - offsets[canCoderID-firstEncoderID];
 }
 
 void DriveModule::ResetEncoder() {
